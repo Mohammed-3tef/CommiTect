@@ -1,6 +1,13 @@
-# CommiTect - Visual Studio Extension
+# CommiTect
 
 Automatically analyzes your code changes on file save and suggests a clear, professional commit name (Bug Fix, Feature, Refactor, Docs, Tests) using an external backend API.
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+
+## Screenshots
+
+![Notification.png](./CommiTect/Resources/notification.png)
+*Real-time notification appears after saving a file*
 
 ## Features
 

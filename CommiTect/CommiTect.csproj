@@ -13,8 +13,8 @@
     <ProjectGuid>{C8F72023-C585-4B59-AE40-99886FCC06BE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CommitIntentDetector</RootNamespace>
-    <AssemblyName>CommitIntentDetector</AssemblyName>
+    <RootNamespace>CommiTect</RootNamespace>
+    <AssemblyName>CommiTect</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>

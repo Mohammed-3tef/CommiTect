@@ -6,6 +6,7 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Imaging;
 
 namespace CommitIntentDetector
 {
@@ -64,14 +65,12 @@ namespace CommitIntentDetector
                 return VSConstants.S_OK;
             }
 
-            // Check if file should be processed
             if (!FileFilter.ShouldProcessFile(filePath))
             {
                 System.Diagnostics.Debug.WriteLine("[CommitIntent] File filtered out");
                 return VSConstants.S_OK;
             }
 
-            // Debounce the processing
             _pendingFilePath = filePath;
             _debounceTimer?.Dispose();
             _debounceTimer = new Timer(ProcessFileCallback, null, options.DebounceDelay, Timeout.Infinite);
@@ -83,8 +82,7 @@ namespace CommitIntentDetector
         private void ProcessFileCallback(object state)
         {
             System.Diagnostics.Debug.WriteLine("[CommitIntent] Timer fired, starting ProcessFileAsync");
-            // Fire and forget - we don't await this
-            _ = ProcessFileAsync();
+            _ = ProcessFileAsync(); // Fire and forget
         }
 
         private async Task ProcessFileAsync()
@@ -92,11 +90,7 @@ namespace CommitIntentDetector
             var filePath = _pendingFilePath;
             System.Diagnostics.Debug.WriteLine($"[CommitIntent] ProcessFileAsync started for: {filePath}");
 
-            if (string.IsNullOrEmpty(filePath))
-            {
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] File path is empty");
-                return;
-            }
+            if (string.IsNullOrEmpty(filePath)) return;
 
             var options = _package.GetOptions();
 
@@ -106,18 +100,13 @@ namespace CommitIntentDetector
                 await _statusBarService.UpdateAsync("Analyzing commit intent...");
                 System.Diagnostics.Debug.WriteLine("[CommitIntent] Status bar updated");
 
-                // Check if in git repository
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Checking if in git repository...");
                 if (!await _gitService.IsGitRepositoryAsync(filePath))
                 {
                     System.Diagnostics.Debug.WriteLine("[CommitIntent] Not a git repository");
                     await _statusBarService.HideAsync();
                     return;
                 }
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Is in git repository");
 
-                // Get git diff
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Getting git diff...");
                 var diff = await _gitService.GetGitDiffAsync(filePath);
                 System.Diagnostics.Debug.WriteLine($"[CommitIntent] Diff length: {diff?.Length ?? 0}");
 
@@ -128,12 +117,9 @@ namespace CommitIntentDetector
                     return;
                 }
 
-                // Show preview of diff
                 var preview = diff.Length > 200 ? diff.Substring(0, 200) : diff;
                 System.Diagnostics.Debug.WriteLine($"[CommitIntent] Diff preview: {preview}");
 
-                // Analyze intent
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Calling API at: {options.ApiUrl}");
                 var intent = await _apiClient.AnalyzeCommitIntentAsync(diff, options);
                 System.Diagnostics.Debug.WriteLine($"[CommitIntent] API returned intent: {intent}");
 
@@ -143,15 +129,10 @@ namespace CommitIntentDetector
                     throw new Exception("API returned empty intent");
                 }
 
-                // Display result
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Calling ProcessAndDisplayAsync...");
                 await _intentProcessor.ProcessAndDisplayAsync(intent, _package);
                 System.Diagnostics.Debug.WriteLine("[CommitIntent] ProcessAndDisplayAsync completed");
 
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Updating status bar with result...");
                 await _statusBarService.UpdateAsync($"Intent detected!");
-
-                // Hide status bar after delay
                 await Task.Delay(3000);
                 await _statusBarService.HideAsync();
                 System.Diagnostics.Debug.WriteLine("[CommitIntent] Process completed successfully");
@@ -163,13 +144,40 @@ namespace CommitIntentDetector
 
                 await _statusBarService.HideAsync();
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                VsShellUtilities.ShowMessageBox(
-                    _package,
-                    $"Failed to detect commit intent: {ex.Message}",
-                    "Commit Intent Detector",
-                    OLEMSGICON.OLEMSGICON_WARNING,
-                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+
+                try
+                {
+                    var shell = await _package.GetServiceAsync(typeof(SVsShell)) as IVsShell;
+                    if (shell != null)
+                    {
+                        object obj;
+                        shell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out obj);
+                        var infoBarHost = obj as IVsInfoBarHost;
+
+                        if (infoBarHost != null)
+                        {
+                            var infoBarModel = new InfoBarModel(
+                                new[] { new InfoBarTextSpan($"Failed to detect commit intent: {ex.Message}") },
+                                Array.Empty<InfoBarActionItem>(),
+                                KnownMonikers.StatusInformation,
+                                isCloseButtonVisible: true
+                            );
+
+                            var factory = await _package.GetServiceAsync(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+                            var infoBarUI = factory.CreateInfoBar(infoBarModel);
+                            infoBarHost.AddInfoBar(infoBarUI);
+                        }
+                        else
+                        {
+                            var statusBar = await _package.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
+                            statusBar?.SetText($"Failed to detect commit intent: {ex.Message}");
+                        }
+                    }
+                }
+                catch (Exception ex2)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] Failed to show error InfoBar: {ex2.Message}");
+                }
             }
         }
 
@@ -183,12 +191,13 @@ namespace CommitIntentDetector
             }
         }
 
-        // Other IVsRunningDocTableEvents3 methods (not used but required)
+        // IVsRunningDocTableEvents3 required methods (no-op)
         public int OnBeforeSave(uint docCookie) => VSConstants.S_OK;
         public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining) => VSConstants.S_OK;
         public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining) => VSConstants.S_OK;
         public int OnAfterAttributeChange(uint docCookie, uint grfAttribs) => VSConstants.S_OK;
-        public int OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld, string pszMkDocumentOld, IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew) => VSConstants.S_OK;
+        public int OnAfterAttributeChangeEx(uint docCookie, uint grfAttribs, IVsHierarchy pHierOld, uint itemidOld, string pszMkDocumentOld,
+                                            IVsHierarchy pHierNew, uint itemidNew, string pszMkDocumentNew) => VSConstants.S_OK;
         public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame) => VSConstants.S_OK;
         public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame) => VSConstants.S_OK;
     }

@@ -4,7 +4,7 @@
 //     Available from https://marketplace.visualstudio.com/items?itemName=MadsKristensen.VsixSynchronizer64
 // </auto-generated>
 // ------------------------------------------------------------------------------
-namespace CommiTect
+namespace CommitIntentDetector
 {
     internal sealed partial class Vsix
     {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CommitIntentDetector
+namespace CommiTect
 {
     /// <summary>
     /// Git repository utilities
@@ -19,19 +19,19 @@ namespace CommitIntentDetector
             try
             {
                 var directory = Path.GetDirectoryName(filePath);
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Checking git in directory: {directory}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Checking git in directory: {directory}");
 
                 var result = await ExecuteGitCommandAsync("rev-parse --git-dir", directory);
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Git rev-parse result: '{result}'");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Git rev-parse result: '{result}'");
 
                 var isGit = !string.IsNullOrWhiteSpace(result);
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Is git repository: {isGit}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Is git repository: {isGit}");
 
                 return isGit;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] IsGitRepositoryAsync exception: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] IsGitRepositoryAsync exception: {ex.Message}");
                 return false;
             }
         }
@@ -41,20 +41,20 @@ namespace CommitIntentDetector
             try
             {
                 var directory = Path.GetDirectoryName(filePath);
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Getting diff for: {filePath}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Getting diff for: {filePath}");
 
                 // Get repository root
                 var repoRoot = await ExecuteGitCommandAsync("rev-parse --show-toplevel", directory);
                 if (string.IsNullOrWhiteSpace(repoRoot))
                 {
-                    System.Diagnostics.Debug.WriteLine("[CommitIntent] Could not determine repo root");
+                    System.Diagnostics.Debug.WriteLine("[CommiTect] Could not determine repo root");
                     return string.Empty;
                 }
 
                 repoRoot = repoRoot.Trim();
                 // On Windows, git returns forward slashes, convert to backslashes
                 repoRoot = repoRoot.Replace('/', Path.DirectorySeparatorChar);
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Repo root: {repoRoot}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Repo root: {repoRoot}");
 
                 // Get relative path from repo root
                 string relativePath;
@@ -82,11 +82,11 @@ namespace CommitIntentDetector
 
                     // Git expects forward slashes
                     relativePath = relativePath.Replace('\\', '/');
-                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] Relative path: {relativePath}");
+                    System.Diagnostics.Debug.WriteLine($"[CommiTect] Relative path: {relativePath}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] Error calculating relative path: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[CommiTect] Error calculating relative path: {ex.Message}");
                     return string.Empty;
                 }
 
@@ -94,21 +94,21 @@ namespace CommitIntentDetector
                 try
                 {
                     await ExecuteGitCommandAsync($"ls-files --error-unmatch \"{relativePath}\"", repoRoot);
-                    System.Diagnostics.Debug.WriteLine("[CommitIntent] File is tracked");
+                    System.Diagnostics.Debug.WriteLine("[CommiTect] File is tracked");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] File not tracked: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[CommiTect] File not tracked: {ex.Message}");
                     return string.Empty;
                 }
 
                 // Get diff
                 var diff = await ExecuteGitCommandAsync($"diff HEAD -- \"{relativePath}\"", repoRoot);
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Diff length: {diff.Length}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Diff length: {diff.Length}");
 
                 if (diff.Length > MaxDiffSize)
                 {
-                    System.Diagnostics.Debug.WriteLine("[CommitIntent] Diff too large");
+                    System.Diagnostics.Debug.WriteLine("[CommiTect] Diff too large");
                     return string.Empty;
                 }
 
@@ -116,15 +116,15 @@ namespace CommitIntentDetector
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] GetGitDiffAsync error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] GetGitDiffAsync error: {ex.Message}");
                 return string.Empty;
             }
         }
 
         private async Task<string> ExecuteGitCommandAsync(string arguments, string workingDirectory)
         {
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] Executing: git {arguments}");
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] Working directory: {workingDirectory}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] Executing: git {arguments}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] Working directory: {workingDirectory}");
 
             var processStartInfo = new ProcessStartInfo
             {
@@ -177,19 +177,19 @@ namespace CommitIntentDetector
                             process.Kill();
                         }
                         catch { }
-                        System.Diagnostics.Debug.WriteLine("[CommitIntent] Git command timed out");
+                        System.Diagnostics.Debug.WriteLine("[CommiTect] Git command timed out");
                         throw new TimeoutException("Git command timed out");
                     }
 
                     var output = outputBuilder.ToString();
                     var error = errorBuilder.ToString();
 
-                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] Git exit code: {process.ExitCode}");
-                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] Git output: '{output.Trim()}'");
+                    System.Diagnostics.Debug.WriteLine($"[CommiTect] Git exit code: {process.ExitCode}");
+                    System.Diagnostics.Debug.WriteLine($"[CommiTect] Git output: '{output.Trim()}'");
 
                     if (!string.IsNullOrWhiteSpace(error))
                     {
-                        System.Diagnostics.Debug.WriteLine($"[CommitIntent] Git stderr: '{error.Trim()}'");
+                        System.Diagnostics.Debug.WriteLine($"[CommiTect] Git stderr: '{error.Trim()}'");
                     }
 
                     // Exit code 0 = success, 1 = no changes (for diff), 128+ = error
@@ -198,12 +198,12 @@ namespace CommitIntentDetector
                         return output;
                     }
 
-                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] Git command failed with exit code {process.ExitCode}");
+                    System.Diagnostics.Debug.WriteLine($"[CommiTect] Git command failed with exit code {process.ExitCode}");
                     throw new Exception($"Git command failed with exit code {process.ExitCode}: {error}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] Git execution error: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[CommiTect] Git execution error: {ex.Message}");
                     throw;
                 }
             }

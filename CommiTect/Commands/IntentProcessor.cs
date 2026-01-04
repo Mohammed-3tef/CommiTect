@@ -6,28 +6,28 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Imaging;
 
-namespace CommitIntentDetector
+namespace CommiTect
 {
     /// <summary>
     /// Intent processing and notification utilities
     /// </summary>
     internal class IntentProcessor
     {
-        public async Task ProcessAndDisplayAsync(string intent, CommitIntentDetectorPackage package)
+        public async Task ProcessAndDisplayAsync(string intent, CommiTectPackage package)
         {
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] ProcessAndDisplayAsync called with intent: {intent}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] ProcessAndDisplayAsync called with intent: {intent}");
 
             var (type, message) = ParseIntent(intent);
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] Parsed - Type: {type}, Message: {message}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] Parsed - Type: {type}, Message: {message}");
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            System.Diagnostics.Debug.WriteLine("[CommitIntent] Switched to UI thread");
+            System.Diagnostics.Debug.WriteLine("[CommiTect] Switched to UI thread");
 
             var displayMessage = !string.IsNullOrEmpty(message)
                 ? $"{type}: {message}"
                 : $"Intent: {intent}";
 
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] Display message: {displayMessage}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] Display message: {displayMessage}");
 
             try
             {
@@ -41,7 +41,7 @@ namespace CommitIntentDetector
 
                     if (infoBarHost != null)
                     {
-                        System.Diagnostics.Debug.WriteLine("[CommitIntent] Creating info bar...");
+                        System.Diagnostics.Debug.WriteLine("[CommiTect] Creating info bar...");
 
                         // Create info bar model
                         var infoBarModel = new InfoBarModel(
@@ -67,11 +67,11 @@ namespace CommitIntentDetector
                         // Add to host
                         infoBarHost.AddInfoBar(infoBarUI);
 
-                        System.Diagnostics.Debug.WriteLine("[CommitIntent] Info bar displayed successfully");
+                        System.Diagnostics.Debug.WriteLine("[CommiTect] Info bar displayed successfully");
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("[CommitIntent] Could not get info bar host, falling back to status bar");
+                        System.Diagnostics.Debug.WriteLine("[CommiTect] Could not get info bar host, falling back to status bar");
                         // Fallback: just show in status bar
                         var statusBar = await package.GetServiceAsync(typeof(SVsStatusbar)) as IVsStatusbar;
                         statusBar?.SetText($"✓ Commit Intent: {displayMessage}");
@@ -80,8 +80,8 @@ namespace CommitIntentDetector
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Error showing notification: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Stack trace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Error showing notification: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Stack trace: {ex.StackTrace}");
 
                 // Fallback to status bar
                 try
@@ -145,17 +145,17 @@ namespace CommitIntentDetector
                 {
                     try
                     {
-                        System.Diagnostics.Debug.WriteLine("[CommitIntent] Copying to clipboard...");
+                        System.Diagnostics.Debug.WriteLine("[CommiTect] Copying to clipboard...");
                         Clipboard.SetText(_message);
 
                         // Close the info bar after copying
                         infoBarUIElement.Close();
 
-                        System.Diagnostics.Debug.WriteLine("[CommitIntent] Copied successfully");
+                        System.Diagnostics.Debug.WriteLine("[CommiTect] Copied successfully");
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[CommitIntent] Failed to copy: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[CommiTect] Failed to copy: {ex.Message}");
                     }
                 }
             }
@@ -163,7 +163,7 @@ namespace CommitIntentDetector
             public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
             {
                 // Info bar was closed
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Info bar closed");
+                System.Diagnostics.Debug.WriteLine("[CommiTect] Info bar closed");
             }
         }
     }

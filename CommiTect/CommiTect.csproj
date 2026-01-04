@@ -54,8 +54,8 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Commands\StatusBarService.cs" />
+    <Compile Include="CommiTectPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CommitIntentDetectorPackage.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

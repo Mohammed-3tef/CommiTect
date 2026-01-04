@@ -3,17 +3,17 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace CommitIntentDetector
+namespace CommiTect
 {
     /// <summary>
     /// Status bar management service
     /// </summary>
     internal class StatusBarService
     {
-        private readonly CommitIntentDetectorPackage _package;
+        private readonly CommiTectPackage _package;
         private IVsStatusbar _statusBar;
 
-        public StatusBarService(CommitIntentDetectorPackage package)
+        public StatusBarService(CommiTectPackage package)
         {
             _package = package;
         }

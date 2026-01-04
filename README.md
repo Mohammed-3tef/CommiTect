@@ -1,4 +1,4 @@
-# Commit Intent Detector - Visual Studio Extension
+# CommiTect - Visual Studio Extension
 
 Automatically analyzes your code changes on file save and suggests a clear, professional commit name (Bug Fix, Feature, Refactor, Docs, Tests) using an external backend API.
 
@@ -24,7 +24,7 @@ Automatically analyzes your code changes on file save and suggests a clear, prof
 
 ### From Source
 1. Clone this repository
-2. Open `CommitIntentDetector.sln` in Visual Studio 2022
+2. Open `CommiTect.sln` in Visual Studio 2022
 3. Build the solution (Ctrl+Shift+B)
 4. The VSIX file will be generated in `bin\Debug` or `bin\Release`
 5. Double-click the `.vsix` file to install
@@ -36,7 +36,7 @@ Automatically analyzes your code changes on file save and suggests a clear, prof
 
 ## Configuration
 
-Configure the extension via **Tools > Options > Commit Intent Detector > General**:
+Configure the extension via **Tools > Options > CommiTect > General**:
 
 - **Enabled** - Enable/disable the extension (default: `true`)
 - **API URL** - Backend API endpoint (default: `http://commitintentdetector.runasp.net/api/Commit/analyze`)
@@ -81,8 +81,8 @@ Supported intents: `Bug Fix`, `Feature`, `Refactor`, `Risky Commit`, `Documentat
 ## Project Structure
 
 ```
-CommitIntentDetector/
-├── CommitIntentDetectorPackage.cs    # Main extension package
+CommiTect/
+├── CommiTectPackage.cs               # Main extension package
 ├── OptionPageGrid.cs                 # Configuration options page
 ├── DocumentSaveListener.cs           # Listens for file save events
 ├── GitService.cs                     # Git operations (diff, repo check)
@@ -91,7 +91,7 @@ CommitIntentDetector/
 ├── IntentProcessor.cs                # Processes and displays results
 ├── StatusBarService.cs               # Visual Studio status bar integration
 ├── source.extension.vsixmanifest     # VSIX manifest
-└── CommitIntentDetector.csproj       # Project file
+└── CommiTect.csproj       # Project file
 ```
 
 ## Building the Extension
@@ -101,7 +101,7 @@ CommitIntentDetector/
 - .NET Framework 4.7.2 SDK
 
 ### Build Steps
-1. Open `CommitIntentDetector.sln`
+1. Open `CommiTect.sln`
 2. Restore NuGet packages
 3. Build solution (F6 or Ctrl+Shift+B)
 4. The VSIX will be in `bin\Debug\` or `bin\Release\`
@@ -144,7 +144,7 @@ CommitIntentDetector/
 
 ### Key Components
 
-**CommitIntentDetectorPackage**
+**CommiTectPackage**
 - Main entry point
 - Initializes services and event listeners
 
@@ -165,7 +165,7 @@ CommitIntentDetector/
 
 To add new features:
 1. Create new service class
-2. Initialize in `CommitIntentDetectorPackage.InitializeAsync()`
+2. Initialize in `CommiTectPackage.InitializeAsync()`
 3. Add configuration in `OptionPageGrid` if needed
 
 ## Privacy

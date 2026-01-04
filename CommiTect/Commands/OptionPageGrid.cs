@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 
-namespace CommitIntentDetector
+namespace CommiTect
 {
     /// <summary>
     /// Options page for the extension

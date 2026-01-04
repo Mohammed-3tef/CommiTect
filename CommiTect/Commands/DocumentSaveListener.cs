@@ -8,14 +8,14 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Imaging;
 
-namespace CommitIntentDetector
+namespace CommiTect
 {
     /// <summary>
     /// Listens for document save events and triggers intent detection
     /// </summary>
     internal class DocumentSaveListener : IVsRunningDocTableEvents3, IDisposable
     {
-        private readonly CommitIntentDetectorPackage _package;
+        private readonly CommiTectPackage _package;
         private RunningDocumentTable _runningDocumentTable;
         private Timer _debounceTimer;
         private string _pendingFilePath;
@@ -25,14 +25,14 @@ namespace CommitIntentDetector
         private readonly StatusBarService _statusBarService;
         private uint _cookie;
 
-        public DocumentSaveListener(CommitIntentDetectorPackage package)
+        public DocumentSaveListener(CommiTectPackage package)
         {
             _package = package;
             _gitService = new GitService();
             _apiClient = new ApiClient();
             _intentProcessor = new IntentProcessor();
             _statusBarService = new StatusBarService(package);
-            System.Diagnostics.Debug.WriteLine("[CommitIntent] DocumentSaveListener created");
+            System.Diagnostics.Debug.WriteLine("[CommiTect] DocumentSaveListener created");
         }
 
         public async Task InitializeAsync()
@@ -40,55 +40,55 @@ namespace CommitIntentDetector
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             _runningDocumentTable = new RunningDocumentTable(_package);
             _cookie = _runningDocumentTable.Advise(this);
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] DocumentSaveListener initialized with cookie: {_cookie}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] DocumentSaveListener initialized with cookie: {_cookie}");
         }
 
         public int OnAfterSave(uint docCookie)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] OnAfterSave called for docCookie: {docCookie}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] OnAfterSave called for docCookie: {docCookie}");
 
             var options = _package.GetOptions();
             if (!options.Enabled)
             {
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Extension is disabled");
+                System.Diagnostics.Debug.WriteLine("[CommiTect] Extension is disabled");
                 return VSConstants.S_OK;
             }
 
             var documentInfo = _runningDocumentTable.GetDocumentInfo(docCookie);
             var filePath = documentInfo.Moniker;
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] File path: {filePath}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] File path: {filePath}");
 
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] File path is empty or doesn't exist");
+                System.Diagnostics.Debug.WriteLine("[CommiTect] File path is empty or doesn't exist");
                 return VSConstants.S_OK;
             }
 
             if (!FileFilter.ShouldProcessFile(filePath))
             {
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] File filtered out");
+                System.Diagnostics.Debug.WriteLine("[CommiTect] File filtered out");
                 return VSConstants.S_OK;
             }
 
             _pendingFilePath = filePath;
             _debounceTimer?.Dispose();
             _debounceTimer = new Timer(ProcessFileCallback, null, options.DebounceDelay, Timeout.Infinite);
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] Timer scheduled with {options.DebounceDelay}ms delay");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] Timer scheduled with {options.DebounceDelay}ms delay");
 
             return VSConstants.S_OK;
         }
 
         private void ProcessFileCallback(object state)
         {
-            System.Diagnostics.Debug.WriteLine("[CommitIntent] Timer fired, starting ProcessFileAsync");
+            System.Diagnostics.Debug.WriteLine("[CommiTect] Timer fired, starting ProcessFileAsync");
             _ = ProcessFileAsync(); // Fire and forget
         }
 
         private async Task ProcessFileAsync()
         {
             var filePath = _pendingFilePath;
-            System.Diagnostics.Debug.WriteLine($"[CommitIntent] ProcessFileAsync started for: {filePath}");
+            System.Diagnostics.Debug.WriteLine($"[CommiTect] ProcessFileAsync started for: {filePath}");
 
             if (string.IsNullOrEmpty(filePath)) return;
 
@@ -96,51 +96,51 @@ namespace CommitIntentDetector
 
             try
             {
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Updating status bar...");
+                System.Diagnostics.Debug.WriteLine("[CommiTect] Updating status bar...");
                 await _statusBarService.UpdateAsync("Analyzing commit intent...");
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Status bar updated");
+                System.Diagnostics.Debug.WriteLine("[CommiTect] Status bar updated");
 
                 if (!await _gitService.IsGitRepositoryAsync(filePath))
                 {
-                    System.Diagnostics.Debug.WriteLine("[CommitIntent] Not a git repository");
+                    System.Diagnostics.Debug.WriteLine("[CommiTect] Not a git repository");
                     await _statusBarService.HideAsync();
                     return;
                 }
 
                 var diff = await _gitService.GetGitDiffAsync(filePath);
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Diff length: {diff?.Length ?? 0}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Diff length: {diff?.Length ?? 0}");
 
                 if (string.IsNullOrWhiteSpace(diff))
                 {
-                    System.Diagnostics.Debug.WriteLine("[CommitIntent] Diff is empty");
+                    System.Diagnostics.Debug.WriteLine("[CommiTect] Diff is empty");
                     await _statusBarService.HideAsync();
                     return;
                 }
 
                 var preview = diff.Length > 200 ? diff.Substring(0, 200) : diff;
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Diff preview: {preview}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Diff preview: {preview}");
 
                 var intent = await _apiClient.AnalyzeCommitIntentAsync(diff, options);
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] API returned intent: {intent}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] API returned intent: {intent}");
 
                 if (string.IsNullOrWhiteSpace(intent))
                 {
-                    System.Diagnostics.Debug.WriteLine("[CommitIntent] Intent is empty!");
+                    System.Diagnostics.Debug.WriteLine("[CommiTect] Intent is empty!");
                     throw new Exception("API returned empty intent");
                 }
 
                 await _intentProcessor.ProcessAndDisplayAsync(intent, _package);
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] ProcessAndDisplayAsync completed");
+                System.Diagnostics.Debug.WriteLine("[CommiTect] ProcessAndDisplayAsync completed");
 
                 await _statusBarService.UpdateAsync($"Intent detected!");
                 await Task.Delay(3000);
                 await _statusBarService.HideAsync();
-                System.Diagnostics.Debug.WriteLine("[CommitIntent] Process completed successfully");
+                System.Diagnostics.Debug.WriteLine("[CommiTect] Process completed successfully");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] ERROR: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Stack trace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] ERROR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Stack trace: {ex.StackTrace}");
 
                 await _statusBarService.HideAsync();
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -176,14 +176,14 @@ namespace CommitIntentDetector
                 }
                 catch (Exception ex2)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[CommitIntent] Failed to show error InfoBar: {ex2.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[CommiTect] Failed to show error InfoBar: {ex2.Message}");
                 }
             }
         }
 
         public void Dispose()
         {
-            System.Diagnostics.Debug.WriteLine("[CommitIntent] Disposing DocumentSaveListener");
+            System.Diagnostics.Debug.WriteLine("[CommiTect] Disposing DocumentSaveListener");
             _debounceTimer?.Dispose();
             if (_runningDocumentTable != null && _cookie != 0)
             {

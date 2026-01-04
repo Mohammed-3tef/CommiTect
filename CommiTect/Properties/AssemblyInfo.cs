@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Commit Intent Detector")]
+[assembly: AssemblyTitle("CommiTect")]
 [assembly: AssemblyDescription("Automatically analyzes your code changes on file save and suggests a clear, professional commit name")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Mohammed Atef")]
-[assembly: AssemblyProduct("Commit Intent Detector")]
+[assembly: AssemblyProduct("CommiTect")]
 [assembly: AssemblyCopyright("Copyright © 2025 Mohammed Atef")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

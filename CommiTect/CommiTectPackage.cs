@@ -6,16 +6,16 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace CommitIntentDetector
+namespace CommiTect
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
     /// </summary>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(PackageGuidString)]
-    [ProvideAutoLoad(Microsoft.VisualStudio.Shell.Interop.UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
-    [ProvideOptionPage(typeof(OptionPageGrid), "Commit Intent Detector", "General", 0, 0, true)]
-    public sealed class CommitIntentDetectorPackage : AsyncPackage
+    [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideOptionPage(typeof(OptionPageGrid), "CommiTect", "General", 0, 0, true)]
+    public sealed class CommiTectPackage : AsyncPackage
     {
         public const string PackageGuidString = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
         private DocumentSaveListener _documentSaveListener;
@@ -29,7 +29,7 @@ namespace CommitIntentDetector
             _documentSaveListener = new DocumentSaveListener(this);
             await _documentSaveListener.InitializeAsync();
 
-            // Show "Commit Intent Detector is now active!" as InfoBar
+            // Show "CommiTect is now active!" as InfoBar
             try
             {
                 var shell = await GetServiceAsync(typeof(SVsShell)) as IVsShell;
@@ -43,7 +43,7 @@ namespace CommitIntentDetector
                     {
                         // Create InfoBar model
                         var infoBarModel = new InfoBarModel(
-                            new[] { new InfoBarTextSpan("Commit Intent Detector is now active!") },
+                            new[] { new InfoBarTextSpan("CommiTect is now active!") },
                             Array.Empty<InfoBarActionItem>(),
                             KnownMonikers.StatusInformation,
                             isCloseButtonVisible: true
@@ -60,7 +60,7 @@ namespace CommitIntentDetector
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CommitIntent] Failed to show InfoBar: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[CommiTect] Failed to show InfoBar: {ex.Message}");
             }
         }
 

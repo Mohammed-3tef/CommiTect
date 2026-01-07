@@ -1,4 +1,4 @@
-# CommiTect
+# CommiTect – Smart Commit Name Suggestion
 
 Automatically analyzes your code changes on file save and suggests a clear, professional commit name (Bug Fix, Feature, Refactor, Docs, Tests) using an external backend API.
 

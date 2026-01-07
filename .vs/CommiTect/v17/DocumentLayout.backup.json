@@ -1,7 +1,12 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\Projects\\Commit Intent Detector\\CommiTect\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{C8F72023-C585-4B59-AE40-99886FCC06BE}|CommiTect\\CommiTect.csproj|d:\\projects\\commit intent detector\\commitect\\commitect\\source.extension.vsixmanifest||{2868F8ED-DE25-439D-9F59-AD52458E9328}",
+      "RelativeMoniker": "D:0:0:{C8F72023-C585-4B59-AE40-99886FCC06BE}|CommiTect\\CommiTect.csproj|solutionrelative:commitect\\source.extension.vsixmanifest||{2868F8ED-DE25-439D-9F59-AD52458E9328}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,11 +14,27 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "source.extension.vsixmanifest [Design]",
+              "DocumentMoniker": "D:\\Projects\\Commit Intent Detector\\CommiTect\\CommiTect\\source.extension.vsixmanifest",
+              "RelativeDocumentMoniker": "CommiTect\\source.extension.vsixmanifest",
+              "ToolTip": "D:\\Projects\\Commit Intent Detector\\CommiTect\\CommiTect\\source.extension.vsixmanifest [Design]",
+              "RelativeToolTip": "CommiTect\\source.extension.vsixmanifest [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003464|",
+              "WhenOpened": "2026-01-07T08:24:25.578Z",
+              "EditorCaption": " [Design]"
             }
           ]
         }
